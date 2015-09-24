@@ -1,0 +1,28 @@
+{
+  "name": "particle-dev-local-compiler",
+  "main": "./lib/main",
+  "version": "0.0.1",
+  "description": "Package providing local compilation for Particle devices",
+  "keywords": [
+    "spark",
+    "particle",
+    "compiler",
+    "photon"
+  ],
+  "repository": "https://github.com/spark/particle-dev-local-compiler",
+  "license": "MIT",
+  "engines": {
+    "atom": ">=1.0.0 <2.0.0"
+  },
+  "dependencies": {
+    "atom-space-pen-views": "^2.0.0",
+    "dockerode": "^2.2.2"
+  },
+  "consumedServices": {
+    "status-bar": {
+      "versions": {
+        "^0.0.1": "consumeStatusBar"
+      }
+    }
+  }
+}
