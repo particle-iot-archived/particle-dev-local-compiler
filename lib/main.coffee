@@ -21,7 +21,8 @@ module.exports = ParticleDevLocalCompiler =
       atom.config.get 'particle-dev-local-compiler.dockerTlsVerify'
       atom.config.get 'particle-dev-local-compiler.dockerMachineName'
     )
-    # TODO: Handle Docker errors
+    @dockerManager.onError (error) =>
+      atom.notifications.addError error
 
     whenjs.all([
       @statusBarDefer.promise

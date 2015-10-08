@@ -31,4 +31,4 @@ class SelectTargetVersionView extends SelectView
 		@main.dockerManager.getSemVerVersions().then (versions) =>
 			@setItems versions
 		, (error) =>
-			atom.notifications.addError error
+			@hide()
