@@ -1,4 +1,3 @@
-ParticleDevLocalCompilerView = require './particle-dev-local-compiler-view'
 whenjs = require 'when'
 CompositeDisposable = null
 DockerManager = null
@@ -14,9 +13,6 @@ module.exports = ParticleDevLocalCompiler =
   activate: (state) ->
     {CompositeDisposable} = require 'atom'
     DockerManager ?= require './docker-manager'
-
-    @particleDevLocalCompilerView = new ParticleDevLocalCompilerView(state.particleDevLocalCompilerViewState)
-    @modalPanel = atom.workspace.addModalPanel(item: @particleDevLocalCompilerView.getElement(), visible: false)
 
     @subscriptions = new CompositeDisposable
     @dockerManager = new DockerManager(
@@ -37,10 +33,8 @@ module.exports = ParticleDevLocalCompiler =
   deactivate: ->
     @modalPanel.destroy()
     @subscriptions.dispose()
-    @particleDevLocalCompilerView.destroy()
 
   serialize: ->
-    particleDevLocalCompilerViewState: @particleDevLocalCompilerView.serialize()
 
   config:
     dockerHost:
