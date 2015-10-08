@@ -16,12 +16,26 @@
   },
   "dependencies": {
     "atom-space-pen-views": "^2.0.0",
-    "dockerode": "^2.2.2"
+    "dockerode": "^2.2.2",
+    "event-kit": "^1.0.0",
+    "particle-dev-views": "git://github.com/spark/particle-dev-views.git#v0.0.3",
+    "semver": "^5.0.3",
+    "when": "^3.7.3"
   },
   "consumedServices": {
     "status-bar": {
       "versions": {
-        "^0.0.1": "consumeStatusBar"
+        "^1.0.0": "consumeStatusBar"
+      }
+    },
+    "particle-dev": {
+      "versions": {
+        "^0.0.1": "consumeParticleDev"
+      }
+    },
+    "particle-dev-profiles": {
+      "versions": {
+        "^0.0.1": "consumeProfiles"
       }
     }
   }

@@ -1,6 +1,8 @@
 Emitter = null
 Docker = null
 whenjs = null
+pipeline = null
+semver = null
 
 Function::property = (prop, desc) ->
 	Object.defineProperty @prototype, prop, desc
@@ -9,13 +11,14 @@ module.exports =
 	class DockerManager
 		constructor: (@host, @certPath, @tlsVerify=1, @machineName='default') ->
 			{Emitter} = require 'event-kit'
-			Docker = require 'dockerode'
-			whenjs = require 'when'
+			Docker ?= require 'dockerode'
+			whenjs ?= require 'when'
+			pipeline ?= require 'when/pipeline'
+			semver ?= require 'semver'
 
-			# TODO: Move this to settings
 			process.env.DOCKER_TLS_VERIFY = @tlsVerify
-			process.env.DOCKER_HOST="tcp://192.168.99.100:2376"
-			process.env.DOCKER_CERT_PATH="/Volumes/128GB/VirtualBox/docker-machine/machines/default"
+			process.env.DOCKER_HOST=@host
+			process.env.DOCKER_CERT_PATH=@certPath
 			process.env.DOCKER_MACHINE_NAME = @machineName
 
 			@emitter = new Emitter
@@ -42,6 +45,24 @@ module.exports =
 
 					dfd.resolve versions
 			dfd.promise
+
+		getSemVerVersions: ->
+			pipeline [
+				=>
+					@getVersions()
+				(versions) =>
+					validVersions = versions.filter semver.valid
+					validVersions = validVersions.sort semver.compare
+					validVersions.reverse()
+			]
+
+		getLatestSemVerVersion: ->
+			pipeline [
+				=>
+					@getSemVerVersions()
+				(versions) =>
+					versions[0]
+			]
 
 		pull: ->
 			dfd = whenjs.defer()

@@ -1,5 +1,5 @@
 ParticleDevLocalCompilerView = require '../lib/particle-dev-local-compiler-view'
 
-describe "ParticleDevLocalCompilerView", ->
+xdescribe "ParticleDevLocalCompilerView", ->
   it "has one valid test", ->
     expect("life").toBe "easy"

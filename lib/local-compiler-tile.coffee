@@ -1,23 +1,34 @@
 {View} = require 'atom-space-pen-views'
-{CompositeDisposable} = require 'atom'
+CompositeDisposable = null
+SelectTargetVersionView = null
 
 module.exports =
 class LocalCompilerTile extends View
 	@content: ->
-		@span type: 'button', class: 'icon icon-tag inline-block'
-		@span	'v0.4.5'
+		@span class: 'inline-block', =>
+			@span type: 'button', class: 'icon icon-tag inline-block', outlet: 'targetVersion', 'Unknown'
 
-	initialize: (@statusBar) ->
+	initialize: (@main) ->
+		{CompositeDisposable} = require 'atom'
+
 		@subscriptions = new CompositeDisposable()
 
-		@on 'click', -> atom.workspace.open('atom://release-notes')
+		@subscriptions.add @targetVersion.on 'click', =>
+			SelectTargetVersionView ?= require './select-target-version-view'
+			@selectTargetVersionView ?= new SelectTargetVersionView(@main)
+			@selectTargetVersionView.show()
+		@subscriptions.add atom.tooltips.add(@targetVersion, title: 'Click to change local compile firmware version')
 
-		@subscriptions.add atom.tooltips.add(@element, title: 'Click to change local compile firmware version')
+		@subscriptions.add @main.profileManager.on 'current-local-target-version-changed', (newTargetVersion) =>
+			@targetVersion.text newTargetVersion
+
+		@main.dockerManager.getLatestSemVerVersion().then (version) =>
+			@targetVersion.text version
+
 		@attach()
 
 	attach: ->
-		console.log 'ATTACH'
-		@statusBar.addLeftTile(item: @, priority: 200)
+		@main.statusBar.addLeftTile(item: @, priority: 201)
 
 	detached: ->
 		@subscriptions?.dispose()
