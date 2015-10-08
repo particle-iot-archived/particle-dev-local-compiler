@@ -6,57 +6,57 @@ ParticleDevLocalCompiler = require '../lib/main'
 # or `fdescribe`). Remove the `f` to unfocus the block.
 
 xdescribe "ParticleDevLocalCompiler", ->
-  [workspaceElement, activationPromise] = []
+	[workspaceElement, activationPromise] = []
 
-  beforeEach ->
-    workspaceElement = atom.views.getView(atom.workspace)
-    activationPromise = atom.packages.activatePackage('particle-dev-local-compiler')
+	beforeEach ->
+		workspaceElement = atom.views.getView(atom.workspace)
+		activationPromise = atom.packages.activatePackage('particle-dev-local-compiler')
 
-  describe "when the particle-dev-local-compiler:toggle event is triggered", ->
-    it "hides and shows the modal panel", ->
-      # Before the activation event the view is not on the DOM, and no panel
-      # has been created
-      expect(workspaceElement.querySelector('.particle-dev-local-compiler')).not.toExist()
+	describe "when the particle-dev-local-compiler:toggle event is triggered", ->
+		it "hides and shows the modal panel", ->
+			# Before the activation event the view is not on the DOM, and no panel
+			# has been created
+			expect(workspaceElement.querySelector('.particle-dev-local-compiler')).not.toExist()
 
-      # This is an activation event, triggering it will cause the package to be
-      # activated.
-      atom.commands.dispatch workspaceElement, 'particle-dev-local-compiler:toggle'
+			# This is an activation event, triggering it will cause the package to be
+			# activated.
+			atom.commands.dispatch workspaceElement, 'particle-dev-local-compiler:toggle'
 
-      waitsForPromise ->
-        activationPromise
+			waitsForPromise ->
+				activationPromise
 
-      runs ->
-        expect(workspaceElement.querySelector('.particle-dev-local-compiler')).toExist()
+			runs ->
+				expect(workspaceElement.querySelector('.particle-dev-local-compiler')).toExist()
 
-        particleDevLocalCompilerElement = workspaceElement.querySelector('.particle-dev-local-compiler')
-        expect(particleDevLocalCompilerElement).toExist()
+				particleDevLocalCompilerElement = workspaceElement.querySelector('.particle-dev-local-compiler')
+				expect(particleDevLocalCompilerElement).toExist()
 
-        particleDevLocalCompilerPanel = atom.workspace.panelForItem(particleDevLocalCompilerElement)
-        expect(particleDevLocalCompilerPanel.isVisible()).toBe true
-        atom.commands.dispatch workspaceElement, 'particle-dev-local-compiler:toggle'
-        expect(particleDevLocalCompilerPanel.isVisible()).toBe false
+				particleDevLocalCompilerPanel = atom.workspace.panelForItem(particleDevLocalCompilerElement)
+				expect(particleDevLocalCompilerPanel.isVisible()).toBe true
+				atom.commands.dispatch workspaceElement, 'particle-dev-local-compiler:toggle'
+				expect(particleDevLocalCompilerPanel.isVisible()).toBe false
 
-    it "hides and shows the view", ->
-      # This test shows you an integration test testing at the view level.
+		it "hides and shows the view", ->
+			# This test shows you an integration test testing at the view level.
 
-      # Attaching the workspaceElement to the DOM is required to allow the
-      # `toBeVisible()` matchers to work. Anything testing visibility or focus
-      # requires that the workspaceElement is on the DOM. Tests that attach the
-      # workspaceElement to the DOM are generally slower than those off DOM.
-      jasmine.attachToDOM(workspaceElement)
+			# Attaching the workspaceElement to the DOM is required to allow the
+			# `toBeVisible()` matchers to work. Anything testing visibility or focus
+			# requires that the workspaceElement is on the DOM. Tests that attach the
+			# workspaceElement to the DOM are generally slower than those off DOM.
+			jasmine.attachToDOM(workspaceElement)
 
-      expect(workspaceElement.querySelector('.particle-dev-local-compiler')).not.toExist()
+			expect(workspaceElement.querySelector('.particle-dev-local-compiler')).not.toExist()
 
-      # This is an activation event, triggering it causes the package to be
-      # activated.
-      atom.commands.dispatch workspaceElement, 'particle-dev-local-compiler:toggle'
+			# This is an activation event, triggering it causes the package to be
+			# activated.
+			atom.commands.dispatch workspaceElement, 'particle-dev-local-compiler:toggle'
 
-      waitsForPromise ->
-        activationPromise
+			waitsForPromise ->
+				activationPromise
 
-      runs ->
-        # Now we can test for view visibility
-        particleDevLocalCompilerElement = workspaceElement.querySelector('.particle-dev-local-compiler')
-        expect(particleDevLocalCompilerElement).toBeVisible()
-        atom.commands.dispatch workspaceElement, 'particle-dev-local-compiler:toggle'
-        expect(particleDevLocalCompilerElement).not.toBeVisible()
+			runs ->
+				# Now we can test for view visibility
+				particleDevLocalCompilerElement = workspaceElement.querySelector('.particle-dev-local-compiler')
+				expect(particleDevLocalCompilerElement).toBeVisible()
+				atom.commands.dispatch workspaceElement, 'particle-dev-local-compiler:toggle'
+				expect(particleDevLocalCompilerElement).not.toBeVisible()

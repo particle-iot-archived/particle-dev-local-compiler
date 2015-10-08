@@ -1,42 +1,42 @@
 {
-  "name": "particle-dev-local-compiler",
-  "main": "./lib/main",
-  "version": "0.0.1",
-  "description": "Package providing local compilation for Particle devices",
-  "keywords": [
-    "spark",
-    "particle",
-    "compiler",
-    "photon"
-  ],
-  "repository": "https://github.com/spark/particle-dev-local-compiler",
-  "license": "MIT",
-  "engines": {
-    "atom": ">=1.0.0 <2.0.0"
-  },
-  "dependencies": {
-    "atom-space-pen-views": "^2.0.0",
-    "dockerode": "^2.2.2",
-    "event-kit": "^1.0.0",
-    "particle-dev-views": "git://github.com/spark/particle-dev-views.git#v0.0.3",
-    "semver": "^5.0.3",
-    "when": "^3.7.3"
-  },
-  "consumedServices": {
-    "status-bar": {
-      "versions": {
-        "^1.0.0": "consumeStatusBar"
-      }
-    },
-    "particle-dev": {
-      "versions": {
-        "^0.0.1": "consumeParticleDev"
-      }
-    },
-    "particle-dev-profiles": {
-      "versions": {
-        "^0.0.1": "consumeProfiles"
-      }
-    }
-  }
+	"name": "particle-dev-local-compiler",
+	"main": "./lib/main",
+	"version": "0.0.1",
+	"description": "Package providing local compilation for Particle devices",
+	"keywords": [
+		"spark",
+		"particle",
+		"compiler",
+		"photon"
+	],
+	"repository": "https://github.com/spark/particle-dev-local-compiler",
+	"license": "MIT",
+	"engines": {
+		"atom": ">=1.0.0 <2.0.0"
+	},
+	"dependencies": {
+		"atom-space-pen-views": "^2.0.0",
+		"dockerode": "^2.2.2",
+		"event-kit": "^1.0.0",
+		"particle-dev-views": "git://github.com/spark/particle-dev-views.git#v0.0.3",
+		"semver": "^5.0.3",
+		"when": "^3.7.3"
+	},
+	"consumedServices": {
+		"status-bar": {
+			"versions": {
+				"^1.0.0": "consumeStatusBar"
+			}
+		},
+		"particle-dev": {
+			"versions": {
+				"^0.0.1": "consumeParticleDev"
+			}
+		},
+		"particle-dev-profiles": {
+			"versions": {
+				"^0.0.1": "consumeProfiles"
+			}
+		}
+	}
 }

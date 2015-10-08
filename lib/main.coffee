@@ -3,66 +3,66 @@ CompositeDisposable = null
 DockerManager = null
 
 module.exports = ParticleDevLocalCompiler =
-  particleDevLocalCompilerView: null
-  modalPanel: null
-  subscriptions: null
-  statusBarDefer: whenjs.defer()
-  particleDevDefer: whenjs.defer()
-  profilesDefer: whenjs.defer()
+	particleDevLocalCompilerView: null
+	modalPanel: null
+	subscriptions: null
+	statusBarDefer: whenjs.defer()
+	particleDevDefer: whenjs.defer()
+	profilesDefer: whenjs.defer()
 
-  activate: (state) ->
-    {CompositeDisposable} = require 'atom'
-    DockerManager ?= require './docker-manager'
+	activate: (state) ->
+		{CompositeDisposable} = require 'atom'
+		DockerManager ?= require './docker-manager'
 
-    @subscriptions = new CompositeDisposable
-    @dockerManager = new DockerManager(
-      atom.config.get 'particle-dev-local-compiler.dockerHost'
-      atom.config.get 'particle-dev-local-compiler.dockerCertPath'
-      atom.config.get 'particle-dev-local-compiler.dockerTlsVerify'
-      atom.config.get 'particle-dev-local-compiler.dockerMachineName'
-    )
-    @dockerManager.onError (error) =>
-      atom.notifications.addError error
+		@subscriptions = new CompositeDisposable
+		@dockerManager = new DockerManager(
+			atom.config.get 'particle-dev-local-compiler.dockerHost'
+			atom.config.get 'particle-dev-local-compiler.dockerCertPath'
+			atom.config.get 'particle-dev-local-compiler.dockerTlsVerify'
+			atom.config.get 'particle-dev-local-compiler.dockerMachineName'
+		)
+		@dockerManager.onError (error) =>
+			atom.notifications.addError error
 
-    whenjs.all([
-      @statusBarDefer.promise
-      @particleDevDefer.promise
-      @profilesDefer.promise
-    ]).then =>
-      @ready()
+		whenjs.all([
+			@statusBarDefer.promise
+			@particleDevDefer.promise
+			@profilesDefer.promise
+		]).then =>
+			@ready()
 
-  deactivate: ->
-    @modalPanel.destroy()
-    @subscriptions.dispose()
+	deactivate: ->
+		@modalPanel.destroy()
+		@subscriptions.dispose()
 
-  serialize: ->
+	serialize: ->
 
-  config:
-    dockerHost:
-      type: 'string'
-      default: ''
+	config:
+		dockerHost:
+			type: 'string'
+			default: ''
 
-    dockerCertPath:
-      type: 'string'
-      default: ''
+		dockerCertPath:
+			type: 'string'
+			default: ''
 
-    dockerTlsVerify:
-      type: 'boolean'
-      default: true
+		dockerTlsVerify:
+			type: 'boolean'
+			default: true
 
-    dockerMachineName:
-      type: 'string'
-      default: 'default'
+		dockerMachineName:
+			type: 'string'
+			default: 'default'
 
-  ready: ->
-    LocalCompilerTile = require './local-compiler-tile'
-    new LocalCompilerTile @
+	ready: ->
+		LocalCompilerTile = require './local-compiler-tile'
+		new LocalCompilerTile @
 
-  consumeStatusBar: (@statusBar) ->
-    @statusBarDefer.resolve @statusBar
+	consumeStatusBar: (@statusBar) ->
+		@statusBarDefer.resolve @statusBar
 
-  consumeParticleDev: (@particleDev) ->
-    @particleDevDefer.resolve @particleDev
+	consumeParticleDev: (@particleDev) ->
+		@particleDevDefer.resolve @particleDev
 
-  consumeProfiles: (@profileManager) ->
-    @profilesDefer.resolve @profileManager
+	consumeProfiles: (@profileManager) ->
+		@profilesDefer.resolve @profileManager
