@@ -17,12 +17,16 @@ module.exports =
 			semver ?= require 'semver'
 
 			process.env.DOCKER_TLS_VERIFY = @tlsVerify
-			process.env.DOCKER_HOST=@host
-			process.env.DOCKER_CERT_PATH=@certPath
+			process.env.DOCKER_HOST = @host
+			process.env.DOCKER_CERT_PATH = @certPath
 			process.env.DOCKER_MACHINE_NAME = @machineName
 
 			@emitter = new Emitter
-			@docker = new Docker()
+			try
+				@docker = new Docker()
+			catch error
+				@handleError error
+
 
 			@imageName = 'particle/buildpack-particle-firmware'
 			@timeout = 5000
@@ -120,4 +124,11 @@ module.exports =
 			@emitter.on 'error', callback
 
 		handleError: (error) ->
+			if error.errno in ['ETIMEDOUT', 'ECONNREFUSED']
+				# TODO: Check the link
+				error = """Unable to connect to Docker.\n
+				Check if your Docker machine is running and [verify Particle Dev Local Compiler package settings are correct](atom://config/packages/particle-dev-local-compiler).
+				"""
+			if typeof error != 'string'
+				error = error.toString()
 			@emitter.emit 'error', error
