@@ -22,6 +22,9 @@ module.exports = ParticleDevLocalCompiler =
 		fs ?= require 'fs-plus'
 		glob ?= require 'glob'
 
+		# Install packages we depend on
+		require('atom-package-deps').install('particle-dev-local-compiler', true)
+
 		@subscriptions = new CompositeDisposable
 		if !@setupDocker()
 			# We can't do anything without Docker
