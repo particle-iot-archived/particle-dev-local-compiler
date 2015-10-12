@@ -44,6 +44,28 @@ module.exports = ParticleDevLocalCompiler =
 
 	serialize: ->
 
+	consumeStatusBar: (@statusBar) ->
+		@statusBarDefer.resolve @statusBar
+
+	consumeConsolePanel: (@consolePanel) ->
+		@consolePanelDefer.resolve @consolePanel
+
+	consumeToolBar: (toolBar) ->
+		@toolBar = toolBar @packageName
+		@toolBar.addButton
+			icon: 'checkmark-circled'
+			callback: @packageName + ':compile-locally'
+			tooltip: 'Compile locally'
+			iconset: 'ion'
+			priority: 53
+		@consoleToolBar.resolve @toolBar
+
+	consumeParticleDev: (@particleDev) ->
+		@particleDevDefer.resolve @particleDev
+
+	consumeProfiles: (@profileManager) ->
+		@profilesDefer.resolve @profileManager
+
 	config:
 		dockerHost:
 			type: 'string'
@@ -143,6 +165,9 @@ module.exports = ParticleDevLocalCompiler =
 						compileErrorHandler 'Compilation failed'
 					else
 						@consolePanel.raw fs.readFileSync(path.join(outputDir, 'memory-use.log')).toString()
+						# Rename binary based on platform
+						fs.moveSync path.join(outputDir, 'firmware.bin'),
+							path.join(outputDir, @profileManager.currentTargetPlatformName.toLowerCase() + '_firmware.bin')
 				, (error) =>
 					compileErrorHandler error
 
@@ -150,28 +175,6 @@ module.exports = ParticleDevLocalCompiler =
 		atom.notifications.addInfo 'Updating available firmware versions...'
 		@dockerManager.pull().then (value) =>
 			atom.notifications.addInfo 'Available firmware versions updated'
-
-	consumeStatusBar: (@statusBar) ->
-		@statusBarDefer.resolve @statusBar
-
-	consumeConsolePanel: (@consolePanel) ->
-		@consolePanelDefer.resolve @consolePanel
-
-	consumeToolBar: (toolBar) ->
-		@toolBar = toolBar @packageName
-		@toolBar.addButton
-			icon: 'checkmark-circled'
-			callback: @packageName + ':compile-locally'
-			tooltip: 'Compile locally'
-			iconset: 'ion'
-			priority: 53
-		@consoleToolBar.resolve @toolBar
-
-	consumeParticleDev: (@particleDev) ->
-		@particleDevDefer.resolve @particleDev
-
-	consumeProfiles: (@profileManager) ->
-		@profilesDefer.resolve @profileManager
 
 	addCommand: (name, callback, target='atom-workspace') ->
 		name = @packageName + ':' + name
