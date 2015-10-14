@@ -55,7 +55,7 @@ module.exports = ParticleDevLocalCompiler =
 
 	consumeToolBar: (toolBar) ->
 		@toolBar = toolBar @packageName
-		@toolBar.addButton
+		@toolBarButton = @toolBar.addButton
 			icon: 'checkmark-circled'
 			callback: @packageName + ':compile-locally'
 			tooltip: 'Compile locally'
@@ -151,6 +151,7 @@ module.exports = ParticleDevLocalCompiler =
 				cacheDir = fs.absolute atom.config.get(@packageName + '.cacheDirectory')
 				fs.makeTreeSync cacheDir
 				@consolePanel.clear()
+				@toolBarButton.addClass 'ion-looping'
 
 				promise = @dockerManager.run projectDir, outputDir, cacheDir, {
 						PLATFORM_ID: @profileManager.currentTargetPlatform
@@ -165,6 +166,7 @@ module.exports = ParticleDevLocalCompiler =
 						atom.notifications.addError error.toString()
 
 				promise.then (result) =>
+					@toolBarButton.removeClass 'ion-looping'
 					# FIXME: Hack for buildpacks returning 0 even when failed
 					log = path.join(outputDir, 'stderr.log')
 					stderr = fs.readFileSync(log).toString()
@@ -178,6 +180,7 @@ module.exports = ParticleDevLocalCompiler =
 							'_firmware_' + (new Date()).getTime() + '.bin')
 						fs.moveSync path.join(outputDir, 'firmware.bin'), outputFile
 				, (error) =>
+					@toolBarButton.removeClass 'ion-looping'
 					compileErrorHandler error
 
 	updateFirmwareVersions: ->
