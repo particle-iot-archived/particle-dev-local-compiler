@@ -60,7 +60,7 @@ module.exports = ParticleDevLocalCompiler =
 			callback: @packageName + ':compile-locally'
 			tooltip: 'Compile locally'
 			iconset: 'ion'
-			priority: 53
+			priority: 52
 		@consoleToolBar.resolve @toolBar
 
 	consumeParticleDev: (@particleDev) ->
