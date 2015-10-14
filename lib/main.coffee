@@ -173,8 +173,10 @@ module.exports = ParticleDevLocalCompiler =
 					else
 						@consolePanel.raw fs.readFileSync(path.join(outputDir, 'memory-use.log')).toString()
 						# Rename binary based on platform
-						fs.moveSync path.join(outputDir, 'firmware.bin'),
-							path.join(projectDir, @profileManager.currentTargetPlatformName.toLowerCase() + '_firmware.bin')
+						outputFile = path.join(projectDir,
+							@profileManager.currentTargetPlatformName.toLowerCase() +
+							'_firmware_' + (new Date()).getTime() + '.bin')
+						fs.moveSync path.join(outputDir, 'firmware.bin'), outputFile
 				, (error) =>
 					compileErrorHandler error
 
