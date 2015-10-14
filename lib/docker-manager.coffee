@@ -9,7 +9,7 @@ Function::property = (prop, desc) ->
 
 module.exports =
 	class DockerManager
-		constructor: (@host, @certPath, @tlsVerify=1, @machineName='default') ->
+		constructor: (@host, @certPath, @tlsVerify=1, @machineName='default', @timeout=5) ->
 			{Emitter} = require 'event-kit'
 			Docker ?= require 'dockerode'
 			whenjs ?= require 'when'
@@ -29,7 +29,6 @@ module.exports =
 
 
 			@imageName = 'particle/buildpack-particle-firmware'
-			@timeout = 5000
 
 		destroy: ->
 			@emitter.dispose()
@@ -116,7 +115,7 @@ module.exports =
 							error = 'Compilation timed out'
 						dfd.reject error
 						@handleError error
-				, @timeout
+				, @timeout * 1000
 
 			dfd.promise
 

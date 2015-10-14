@@ -94,6 +94,10 @@ module.exports = ParticleDevLocalCompiler =
 			type: 'string'
 			default: '~/.particledev/cache'
 
+		compileTimeout:
+			type: 'integer'
+			default: 5
+
 	ready: ->
 		LocalCompilerTile = require './local-compiler-tile'
 		new LocalCompilerTile @
