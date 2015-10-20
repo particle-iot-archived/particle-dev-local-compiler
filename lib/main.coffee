@@ -174,7 +174,7 @@ module.exports = ParticleDevLocalCompiler =
 					# FIXME: Hack for buildpacks returning 0 even when failed
 					log = path.join(outputDir, 'stderr.log')
 					stderr = fs.readFileSync(log).toString()
-					if stderr.indexOf('make: *** [user] Error') > -1
+					if stderr.search(/make\: \*\*\* \[.*\] Error/) > -1
 						compileErrorHandler 'Compilation failed'
 					else
 						@consolePanel.raw fs.readFileSync(path.join(outputDir, 'memory-use.log')).toString()
