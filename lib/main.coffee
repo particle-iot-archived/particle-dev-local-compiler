@@ -98,6 +98,10 @@ module.exports = ParticleDevLocalCompiler =
 			type: 'integer'
 			default: 5
 
+		showOnlySemverVersions:
+			type: 'boolean'
+			default: true
+
 	ready: ->
 		LocalCompilerTile = require './local-compiler-tile'
 		new LocalCompilerTile @
