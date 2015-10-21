@@ -117,7 +117,7 @@ module.exports = ParticleDevLocalCompiler =
 			error = """
 			It looks like you don't have your Docker environment set up.
 
-			Go to https://docs.particle.io/guide/tools-and-features/dev/#local-compilation and follow instructions on how to set it up.
+			Go to https://github.com/spark/particle-dev-local-compiler#installation-steps and follow instructions on how to set it up.
 			"""
 			atom.notifications.addError error,
 				dismissable: true
