@@ -1,6 +1,7 @@
 whenjs = require 'when'
 fs = null
 glob = null
+path = null
 CompositeDisposable = null
 DockerManager = null
 
@@ -21,6 +22,7 @@ module.exports = ParticleDevLocalCompiler =
 		DockerManager ?= require './docker-manager'
 		fs ?= require 'fs-plus'
 		glob ?= require 'glob'
+		path ?= require 'path'
 
 		# Install packages we depend on
 		require('atom-package-deps').install('particle-dev-local-compiler', true)
