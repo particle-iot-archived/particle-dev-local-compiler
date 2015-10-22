@@ -98,7 +98,7 @@ module.exports = ParticleDevLocalCompiler =
 
 		compileTimeout:
 			type: 'integer'
-			default: 5
+			default: 10
 
 		showOnlySemverVersions:
 			type: 'boolean'
