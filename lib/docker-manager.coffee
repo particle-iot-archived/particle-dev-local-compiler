@@ -9,7 +9,7 @@ Function::property = (prop, desc) ->
 
 module.exports =
 	class DockerManager
-		constructor: (@host, @certPath, @tlsVerify=1, @machineName='default', @timeout=5) ->
+		constructor: (@imageName, @host, @certPath, @tlsVerify=1, @machineName='default', @timeout=5) ->
 			{Emitter} = require 'event-kit'
 			Docker ?= require 'dockerode'
 			whenjs ?= require 'when'
@@ -26,9 +26,6 @@ module.exports =
 				@docker = new Docker()
 			catch error
 				@handleError error
-
-
-			@imageName = 'particle/buildpack-particle-firmware'
 
 		destroy: ->
 			@emitter.dispose()

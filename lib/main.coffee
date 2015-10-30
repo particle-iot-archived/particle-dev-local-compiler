@@ -28,9 +28,10 @@ module.exports = ParticleDevLocalCompiler =
 		require('atom-package-deps').install('particle-dev-local-compiler', true)
 
 		@subscriptions = new CompositeDisposable
-		if !@setupDocker()
-			# We can't do anything without Docker
-			return
+
+		@setupDocker()
+		atom.config.onDidChange =>
+			@setupDocker()
 
 		whenjs.all([
 			@statusBarDefer.promise
@@ -75,34 +76,47 @@ module.exports = ParticleDevLocalCompiler =
 		dockerHost:
 			type: 'string'
 			default: ''
+			description: 'Contents of DOCKER_HOST variable.'
 
 		dockerCertPath:
 			type: 'string'
 			default: ''
+			description: 'Contents of DOCKER_CERT_PATH variable.'
 
 		dockerTlsVerify:
 			type: 'boolean'
 			default: true
+			description: 'True if DOCKER_TLS_VERIFY equals 1.'
 
 		dockerMachineName:
 			type: 'string'
 			default: 'default'
+			description: 'Contents of DOCKER_MACHINE_NAME variable.'
+
+		dockerImageName:
+			type: 'string'
+			default: 'particle/buildpack-particle-firmware'
+			description: 'Name of the Docker Hub image used for compilation'
 
 		outputDirectory:
 			type: 'string'
 			default: 'build'
+			description: 'Directory name which will be appended to project directory. Contains logs and other build artefacts.'
 
 		cacheDirectory:
 			type: 'string'
 			default: '~/.particledev/cache'
+			description: 'Directory holding intermediate files between builds.'
 
 		compileTimeout:
 			type: 'integer'
 			default: 10
+			description: 'Number of seconds to wait before killing image. Adjust this value if you get a lot of "Compilation timed out" errors.'
 
 		showOnlySemverVersions:
 			type: 'boolean'
 			default: true
+			description: 'If true show only X.Y.Z formated versions. Uncheck if you want to access alpha and beta releases.'
 
 	ready: ->
 		LocalCompilerTile = require './local-compiler-tile'
@@ -113,6 +127,7 @@ module.exports = ParticleDevLocalCompiler =
 		@particleDev
 
 	setupDocker: ->
+		@dockerManager = null
 		dockerHost = atom.config.get @packageName + '.dockerHost'
 		dockerCertPath = atom.config.get @packageName + '.dockerCertPath'
 		if !dockerHost or !dockerCertPath
@@ -126,6 +141,7 @@ module.exports = ParticleDevLocalCompiler =
 			return false
 
 		@dockerManager = new DockerManager(
+			atom.config.get @packageName + '.dockerImageName'
 			dockerHost
 			dockerCertPath
 			atom.config.get @packageName + '.dockerTlsVerify'
