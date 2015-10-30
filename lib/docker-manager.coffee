@@ -74,7 +74,12 @@ module.exports =
 					@handleError error
 					dfd.reject error
 				else
-					dfd.resolve()
+					stream.on 'data', (data) ->
+						console.debug '-->', data.toString()
+					stream.on 'end', ->
+						console.debug 'Pulling done'
+						dfd.resolve()
+
 			dfd.promise
 
 		run: (inputDir, outputDir, cacheDir, env=[], version='latest') ->

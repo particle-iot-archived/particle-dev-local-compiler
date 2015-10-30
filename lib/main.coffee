@@ -190,9 +190,16 @@ module.exports = ParticleDevLocalCompiler =
 					compileErrorHandler error
 
 	updateFirmwareVersions: ->
-		atom.notifications.addInfo 'Updating available firmware versions...'
+		notification = atom.notifications.addInfo """
+			<span>Updating available firmware versions...</span>
+			<progress class="inline-block" />""",
+			dismissable: true
+			detail: 'This may take couple of minutes, depending on your connection speed and amount of new versions.'
 		@dockerManager.pull().then (value) =>
-			atom.notifications.addInfo 'Available firmware versions updated'
+			if notification.isDismissed()
+				atom.notifications.addInfo 'Available firmware versions updated'
+			else
+				notification.dismiss()
 
 	addCommand: (name, callback, target='atom-workspace') ->
 		name = @packageName + ':' + name
