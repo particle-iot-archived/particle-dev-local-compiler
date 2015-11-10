@@ -6,7 +6,7 @@ module.exports =
 class LocalCompilerTile extends View
 	@content: ->
 		@span class: 'inline-block', =>
-			@span type: 'button', class: 'icon icon-tag inline-block', outlet: 'targetVersion', 'Unknown'
+			@span type: 'button', class: 'icon icon-tag inline-block', outlet: 'targetVersion', 'Unknown version'
 
 	initialize: (@main) ->
 		{CompositeDisposable} = require 'atom'
