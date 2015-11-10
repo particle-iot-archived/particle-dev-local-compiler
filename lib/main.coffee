@@ -118,6 +118,17 @@ module.exports = ParticleDevLocalCompiler =
 			default: true
 			description: 'If true show only X.Y.Z formated versions. Uncheck if you want to access alpha and beta releases.'
 
+	dockerManagerRequired: (callback) ->
+		if !@dockerManager
+			@setupDocker()
+			return
+		callback()
+
+	beingLoadedRequired: (callback) ->
+		if !@loaded
+			return
+		callback()
+
 	ready: ->
 		LocalCompilerTile = require './local-compiler-tile'
 		new LocalCompilerTile @
@@ -165,47 +176,46 @@ module.exports = ParticleDevLocalCompiler =
 			fs.removeSync file
 		outputDir
 
-	compile: ->
-		if @loaded
-			projectDir = @particleDev.getProjectDir()
-			if projectDir != null
-				outputDir = @ensureOutputDir projectDir
-				cacheDir = fs.absolute atom.config.get(@packageName + '.cacheDirectory')
-				fs.makeTreeSync cacheDir
-				@consolePanel.clear()
-				@toolBarButton.addClass 'ion-looping'
+	compile: -> @beingLoadedRequired => @dockerManagerRequired =>
+		projectDir = @particleDev.getProjectDir()
+		if projectDir != null
+			outputDir = @ensureOutputDir projectDir
+			cacheDir = fs.absolute atom.config.get(@packageName + '.cacheDirectory')
+			fs.makeTreeSync cacheDir
+			@consolePanel.clear()
+			@toolBarButton.addClass 'ion-looping'
 
-				promise = @dockerManager.run projectDir, outputDir, cacheDir, {
-						PLATFORM_ID: @profileManager.currentTargetPlatform
-					},
-					@profileManager.getLocal 'current-local-target-version'
+			promise = @dockerManager.run projectDir, outputDir, cacheDir, {
+					PLATFORM_ID: @profileManager.currentTargetPlatform
+				},
+				@profileManager.getLocal 'current-local-target-version'
 
-				compileErrorHandler = (error) =>
-					stderr = path.join(outputDir, 'stderr.log')
-					if fs.existsSync stderr
-						@consolePanel.raw fs.readFileSync(stderr).toString()
-					else
-						atom.notifications.addError error.toString()
+			compileErrorHandler = (error) =>
+				stderr = path.join(outputDir, 'stderr.log')
+				if fs.existsSync stderr
+					@consolePanel.raw fs.readFileSync(stderr).toString()
+				else
+					atom.notifications.addError error.toString()
 
-				promise.then (result) =>
-					@toolBarButton.removeClass 'ion-looping'
-					# FIXME: Hack for buildpacks returning 0 even when failed
-					log = path.join(outputDir, 'stderr.log')
-					stderr = fs.readFileSync(log).toString()
-					if stderr.search(/make\: \*\*\* \[.*\] Error/) > -1
-						compileErrorHandler 'Compilation failed'
-					else
-						@consolePanel.raw fs.readFileSync(path.join(outputDir, 'memory-use.log')).toString()
-						# Rename binary based on platform
-						outputFile = path.join(projectDir,
-							@profileManager.currentTargetPlatformName.toLowerCase() +
-							'_firmware_' + (new Date()).getTime() + '.bin')
-						fs.moveSync path.join(outputDir, 'firmware.bin'), outputFile
-				, (error) =>
-					@toolBarButton.removeClass 'ion-looping'
-					compileErrorHandler error
+			promise.then (result) =>
+				@toolBarButton.removeClass 'ion-looping'
+				# FIXME: Hack for buildpacks returning 0 even when failed
+				log = path.join(outputDir, 'stderr.log')
+				stderr = fs.readFileSync(log).toString()
+				if stderr.search(/make\: \*\*\* \[.*\] Error/) > -1
+					compileErrorHandler 'Compilation failed'
+				else
+					@consolePanel.raw fs.readFileSync(path.join(outputDir, 'memory-use.log')).toString()
+					# Rename binary based on platform
+					outputFile = path.join(projectDir,
+						@profileManager.currentTargetPlatformName.toLowerCase() +
+						'_firmware_' + (new Date()).getTime() + '.bin')
+					fs.moveSync path.join(outputDir, 'firmware.bin'), outputFile
+			, (error) =>
+				@toolBarButton.removeClass 'ion-looping'
+				compileErrorHandler error
 
-	updateFirmwareVersions: ->
+	updateFirmwareVersions: -> @beingLoadedRequired => @dockerManagerRequired =>
 		notification = atom.notifications.addInfo """
 			<span>Updating available firmware versions...</span>
 			<progress class="inline-block" />""",

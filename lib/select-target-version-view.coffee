@@ -29,11 +29,11 @@ class SelectTargetVersionView extends SelectView
 
 	listVersions: ->
 		if atom.config.get(@main.packageName + '.showOnlySemverVersions')
-			versionsPromise = @main.dockerManager.getSemVerVersions()
+			versionsPromise = @main.dockerManager?.getSemVerVersions()
 		else
-			versionsPromise = @main.dockerManager.getVersions()
-		
-		versionsPromise.then (versions) =>
+			versionsPromise = @main.dockerManager?.getVersions()
+
+		versionsPromise?.then (versions) =>
 			@setItems versions
 		, (error) =>
 			@hide()

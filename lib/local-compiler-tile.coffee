@@ -22,7 +22,7 @@ class LocalCompilerTile extends View
 		@subscriptions.add @main.profileManager.on 'current-local-target-version-changed', (newTargetVersion) =>
 			@targetVersion.text newTargetVersion
 
-		@main.dockerManager.getLatestSemVerVersion().then (version) =>
+		@main.dockerManager?.getLatestSemVerVersion().then (version) =>
 			@targetVersion.text version
 
 		@attach()
