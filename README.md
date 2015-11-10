@@ -58,3 +58,14 @@ First one will do a cloud compile as previously.
 Second does a local compilation. Clicking it will create `build` directory in your project and fill it with compilation results.
 
 Resulting binary can be flashed over the air using **Flash** icon on over the wire using `particle flash --usb <filename>` [CLI command](https://docs.particle.io/reference/cli/#particle-flash).
+
+## FAQ
+
+#### Q: **Update Firmware Versions** takes a very long time. Did it hang?
+A: Depending on many factors, first update may take up to dozens of minutes as it pulls image for every firmware version. There's [an issue](https://github.com/spark/particle-dev-local-compiler/issues/8) that should make first update much quicker. Until then it's best to wait until it finishes.
+
+#### Q: I already entered Docker settings but still get error telling me I don't have Docker environment set up
+A: On Windows and OS X, docker requires running a small virtual machine to work. This is managed by `docker-machine` tool. Make sure you run `docker-machine start default` after restarting your computer.
+
+#### Q: I get `Platform 'core' does not support dynamic modules` error
+A: Some platforms and versions won't work together. You have to try using different version.
