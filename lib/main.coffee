@@ -143,12 +143,22 @@ module.exports = ParticleDevLocalCompiler =
 		dockerCertPath = atom.config.get @packageName + '.dockerCertPath'
 		if !dockerHost or !dockerCertPath
 			error = """
-			It looks like you don't have your Docker environment set up.
+			It looks like you don't have your Docker environment set up in package settings.
 
-			Go to https://github.com/spark/particle-dev-local-compiler#installation-steps and follow instructions on how to set it up.
+			Please follow the instructions on how to set it up.
 			"""
 			atom.notifications.addError error,
 				dismissable: true
+				buttons: [{
+					text: 'Show instructions'
+					onDidClick: ->
+						shell = require 'shell'
+						shell.openExternal 'https://github.com/spark/particle-dev-local-compiler#installation-steps'
+				}, {
+					text: 'Show settings'
+					onDidClick: ->
+						atom.workspace.open 'atom://config/packages/particle-dev-local-compiler'
+				}]
 			return false
 
 		@dockerManager = new DockerManager(
@@ -159,8 +169,23 @@ module.exports = ParticleDevLocalCompiler =
 			atom.config.get @packageName + '.dockerMachineName'
 		)
 		@dockerManager.onError (error) =>
-			atom.notifications.addError error,
-				dismissable: true
+			if (typeof error != 'string') and (error.errno not in ['ETIMEDOUT', 'ECONNREFUSED'])
+				error = error.toString()
+				atom.notifications.addError error,
+					dismissable: true
+			else
+				dockerMachineName = atom.config.get @packageName + '.dockerMachineName'
+				error = """Unable to connect to Docker.\n
+				Check if your Docker machine is running (you can use `docker-machine status #{dockerMachineName}`) and verify Particle Dev Local Compiler package settings are correct.
+				"""
+				notification = atom.notifications.addError error,
+					dismissable: true
+					buttons: [{
+						text: 'Show settings'
+						onDidClick: ->
+							atom.workspace.open 'atom://config/packages/particle-dev-local-compiler'
+							notification.dismiss()
+					}]
 
 		true
 

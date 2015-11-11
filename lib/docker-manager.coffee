@@ -125,11 +125,4 @@ module.exports =
 			@emitter.on 'error', callback
 
 		handleError: (error) ->
-			if error.errno in ['ETIMEDOUT', 'ECONNREFUSED']
-				# TODO: Check the link
-				error = """Unable to connect to Docker.\n
-				Check if your Docker machine is running and [verify Particle Dev Local Compiler package settings are correct](atom://config/packages/particle-dev-local-compiler).
-				"""
-			if typeof error != 'string'
-				error = error.toString()
 			@emitter.emit 'error', error
