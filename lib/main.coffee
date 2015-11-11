@@ -245,7 +245,7 @@ module.exports = ParticleDevLocalCompiler =
 			<span>Updating available firmware versions...</span>
 			<progress class="inline-block" />""",
 			dismissable: true
-			detail: 'This may take couple of minutes, depending on your connection speed and amount of new versions.'
+			detail: 'This may take couple of minutes, depending on your connection speed and amount of new versions (which may be up to 10GB).'
 		@dockerManager.pull().then (value) =>
 			if notification.isDismissed()
 				atom.notifications.addInfo 'Available firmware versions updated'
