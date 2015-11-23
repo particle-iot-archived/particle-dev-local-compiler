@@ -69,3 +69,21 @@ A: On Windows and OS X, docker requires running a small virtual machine to work.
 
 #### Q: I get `Platform 'core' does not support dynamic modules` error
 A: Some platforms and versions won't work together. You have to try using different version.
+
+#### Q: After updating firmware versions Docker VM has grown to over 20GB
+A: Alpha version of local compiler tries to download all available versions which may take a lot of disk space. If you prefer just to keep latest version you can recreate VM using:
+
+```
+$ docker-machine rm default
+$ docker-machine create --driver=virtualbox default
+$ eval "$(docker-machine env default)"
+$ docker pull particle/buildpack-particle-firmware:v0.4.7
+```
+**Note:** it is possible you will need to update Docker settings in Atom/Particle Dev.
+
+#### Q: How can I uninstall local compiler and all related software?
+A: To uninstall Particle Dev Local Compiler package, go to **Settings View: Uninstall packages** and click **Uninstall** next to it. To uninstall Docker Toolbox:
+
+On Windows you can remove **Docker Toolbox** and **VirtualBox** using **Programs and Features** in **Control Panael**.
+
+On OS X you can use [the official script](https://github.com/docker/toolbox/blob/master/osx/uninstall.sh) to uninstall **Docker Machine** and use **VirtualBox** removal tool from [latest VirtualBox](https://www.virtualbox.org/wiki/Downloads).
