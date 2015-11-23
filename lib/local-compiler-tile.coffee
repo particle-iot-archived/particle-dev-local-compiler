@@ -22,8 +22,7 @@ class LocalCompilerTile extends View
 		@subscriptions.add @main.profileManager.on 'current-local-target-version-changed', (newTargetVersion) =>
 			@targetVersion.text newTargetVersion
 
-		@main.dockerManager?.getLatestSemVerVersion().then (version) =>
-			@targetVersion.text version
+		@updateDefaultVersion()
 
 		@attach()
 
@@ -32,3 +31,8 @@ class LocalCompilerTile extends View
 
 	detached: ->
 		@subscriptions?.dispose()
+
+	updateDefaultVersion: ->
+		if @targetVersion.text() == 'Unknown version'
+			@main.dockerManager?.getLatestSemVerVersion().then (version) =>
+				@targetVersion.text version

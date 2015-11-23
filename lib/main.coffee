@@ -8,7 +8,6 @@ DockerManager = null
 module.exports = ParticleDevLocalCompiler =
 	packageName: 'particle-dev-local-compiler'
 	particleDevLocalCompilerView: null
-	modalPanel: null
 	subscriptions: null
 	loaded: false
 	statusBarDefer: whenjs.defer()
@@ -45,7 +44,6 @@ module.exports = ParticleDevLocalCompiler =
 		@setupCommands()
 
 	deactivate: ->
-		@modalPanel.destroy()
 		@subscriptions.dispose()
 
 	serialize: ->
@@ -131,7 +129,7 @@ module.exports = ParticleDevLocalCompiler =
 
 	ready: ->
 		LocalCompilerTile = require './local-compiler-tile'
-		new LocalCompilerTile @
+		@localCompilerTile = new LocalCompilerTile @
 
 		@loaded = true
 
@@ -186,7 +184,7 @@ module.exports = ParticleDevLocalCompiler =
 							atom.workspace.open 'atom://config/packages/particle-dev-local-compiler'
 							notification.dismiss()
 					}]
-
+		@localCompilerTile?.updateDefaultVersion()
 		true
 
 	setupCommands: ->
@@ -251,6 +249,7 @@ module.exports = ParticleDevLocalCompiler =
 				atom.notifications.addInfo 'Available firmware versions updated'
 			else
 				notification.dismiss()
+				@localCompilerTile?.updateDefaultVersion()
 
 	addCommand: (name, callback, target='atom-workspace') ->
 		name = @packageName + ':' + name
