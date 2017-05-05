@@ -3,17 +3,17 @@ fs = null
 glob = null
 path = null
 CompositeDisposable = null
+
 DockerManager = null
 
 module.exports = ParticleDevLocalCompiler =
 	packageName: 'particle-dev-local-compiler'
-	particleDevLocalCompilerView: null
 	subscriptions: null
 	loaded: false
 	statusBarDefer: whenjs.defer()
 	consolePanelDefer: whenjs.defer()
 	consoleToolBar: whenjs.defer()
-	particleDevDefer: whenjs.defer()
+	coreDefer: whenjs.defer()
 	profilesDefer: whenjs.defer()
 
 	activate: (state) ->
@@ -29,14 +29,12 @@ module.exports = ParticleDevLocalCompiler =
 		@subscriptions = new CompositeDisposable
 
 		@setupDocker()
-		atom.config.onDidChange =>
-			@setupDocker()
 
 		whenjs.all([
 			@statusBarDefer.promise
 			@consolePanelDefer.promise
 			@consoleToolBar.promise
-			@particleDevDefer.promise
+			@coreDefer.promise
 			@profilesDefer.promise
 		]).then =>
 			@ready()
@@ -61,41 +59,16 @@ module.exports = ParticleDevLocalCompiler =
 			callback: @packageName + ':compile-locally'
 			tooltip: 'Compile locally'
 			iconset: 'ion'
-			priority: 52
+			priority: 521
 		@consoleToolBar.resolve @toolBar
 
-	consumeParticleDev: (@particleDev) ->
-		@particleDevDefer.resolve @particleDev
+	consumeParticleDev: (@core) ->
+		@coreDefer.resolve @core
 
 	consumeProfiles: (@profileManager) ->
 		@profilesDefer.resolve @profileManager
 
 	config:
-		dockerHost:
-			type: 'string'
-			default: ''
-			description: 'Contents of DOCKER_HOST variable.'
-
-		dockerCertPath:
-			type: 'string'
-			default: ''
-			description: 'Contents of DOCKER_CERT_PATH variable.'
-
-		dockerTlsVerify:
-			type: 'boolean'
-			default: true
-			description: 'True if DOCKER_TLS_VERIFY equals 1.'
-
-		dockerMachineName:
-			type: 'string'
-			default: 'default'
-			description: 'Contents of DOCKER_MACHINE_NAME variable.'
-
-		dockerImageName:
-			type: 'string'
-			default: 'particle/buildpack-particle-firmware'
-			description: 'Name of the Docker Hub image used for compilation'
-
 		outputDirectory:
 			type: 'string'
 			default: 'build'
@@ -105,16 +78,6 @@ module.exports = ParticleDevLocalCompiler =
 			type: 'string'
 			default: '~/.particledev/cache'
 			description: 'Directory holding intermediate files between builds.'
-
-		compileTimeout:
-			type: 'integer'
-			default: 10
-			description: 'Number of seconds to wait before killing image. Adjust this value if you get a lot of "Compilation timed out" errors.'
-
-		showOnlySemverVersions:
-			type: 'boolean'
-			default: true
-			description: 'If true show only X.Y.Z formated versions. Uncheck if you want to access alpha and beta releases.'
 
 	dockerManagerRequired: (callback) ->
 		if !@dockerManager
@@ -128,68 +91,30 @@ module.exports = ParticleDevLocalCompiler =
 		callback()
 
 	ready: ->
-		LocalCompilerTile = require './local-compiler-tile'
-		@localCompilerTile = new LocalCompilerTile @
-
 		@loaded = true
 
-		@particleDev
+		@core
 
 	setupDocker: ->
 		@dockerManager = null
-		dockerHost = atom.config.get @packageName + '.dockerHost'
-		dockerCertPath = atom.config.get @packageName + '.dockerCertPath'
-		if !dockerHost or !dockerCertPath
-			error = """
-			It looks like you don't have your Docker environment set up in package settings.
 
-			Please follow the instructions on how to set it up.
-			"""
-			atom.notifications.addError error,
-				dismissable: true
-				buttons: [{
-					text: 'Show instructions'
-					onDidClick: ->
-						shell = require 'shell'
-						shell.openExternal 'https://github.com/spark/particle-dev-local-compiler#installation-steps'
-				}, {
-					text: 'Show settings'
-					onDidClick: ->
-						atom.workspace.open 'atom://config/packages/particle-dev-local-compiler'
-				}]
-			return false
-
-		@dockerManager = new DockerManager(
-			atom.config.get @packageName + '.dockerImageName'
-			dockerHost
-			dockerCertPath
-			atom.config.get @packageName + '.dockerTlsVerify'
-			atom.config.get @packageName + '.dockerMachineName'
-		)
+		@dockerManager = new DockerManager()
 		@dockerManager.onError (error) =>
 			if (typeof error != 'string') and (error.errno not in ['ETIMEDOUT', 'ECONNREFUSED'])
 				error = error.toString()
 				atom.notifications.addError error,
 					dismissable: true
 			else
-				dockerMachineName = atom.config.get @packageName + '.dockerMachineName'
 				error = """Unable to connect to Docker.\n
-				Check if your Docker machine is running (you can use `docker-machine status #{dockerMachineName}`) and verify Particle Dev Local Compiler package settings are correct.
+				Check if Docker is running (you can use `docker ps -a` in command line).
 				"""
 				notification = atom.notifications.addError error,
 					dismissable: true
-					buttons: [{
-						text: 'Show settings'
-						onDidClick: ->
-							atom.workspace.open 'atom://config/packages/particle-dev-local-compiler'
-							notification.dismiss()
-					}]
-		@localCompilerTile?.updateDefaultVersion()
+
 		true
 
 	setupCommands: ->
 		@addCommand 'compile-locally', => @compile()
-		@addCommand 'update-firmware-versions', => @updateFirmwareVersions()
 
 	ensureOutputDir: (projectDir) ->
 		outputDir = path.join projectDir, atom.config.get(@packageName + '.outputDirectory')
@@ -199,57 +124,46 @@ module.exports = ParticleDevLocalCompiler =
 			fs.removeSync file
 		outputDir
 
-	compile: -> @beingLoadedRequired => @dockerManagerRequired =>
-		projectDir = @particleDev.getProjectDir()
-		if projectDir != null
-			outputDir = @ensureOutputDir projectDir
-			cacheDir = fs.absolute atom.config.get(@packageName + '.cacheDirectory')
-			fs.makeTreeSync cacheDir
-			@consolePanel.clear()
-			@toolBarButton.addClass 'ion-looping'
+	setToolBarButtonProgress: (inProgress) ->
+		if inProgress
+			@toolBarButton.element.classList.add 'ion-looping'
+		else
+			@toolBarButton.element.classList.remove 'ion-looping'
 
-			promise = @dockerManager.run projectDir, outputDir, cacheDir, {
-					PLATFORM_ID: @profileManager.currentTargetPlatform
-				},
-				@profileManager.getLocal 'current-local-target-version'
+	compile: -> @beingLoadedRequired => @dockerManagerRequired => @core.projectRequired =>
+		projectDir = @core.getProjectDir()
 
-			compileErrorHandler = (error) =>
-				stderr = path.join(outputDir, 'stderr.log')
-				if fs.existsSync stderr
-					@consolePanel.raw fs.readFileSync(stderr).toString()
-				else
-					atom.notifications.addError error.toString()
+		outputDir = @ensureOutputDir projectDir
+		currentBuildTarget = @profileManager.getLocal 'current-build-target'
+		currentPlatform = @profileManager.currentTargetPlatformName.toLowerCase()
+		@consolePanel.clear()
+		@setToolBarButtonProgress true
+		# TODO: Remove old files from output dir
 
-			promise.then (result) =>
-				@toolBarButton.removeClass 'ion-looping'
-				# FIXME: Hack for buildpacks returning 0 even when failed
-				log = path.join(outputDir, 'stderr.log')
-				stderr = fs.readFileSync(log).toString()
-				if stderr.search(/make\: \*\*\* \[.*\] Error/) > -1
-					compileErrorHandler 'Compilation failed'
-				else
-					@consolePanel.raw fs.readFileSync(path.join(outputDir, 'memory-use.log')).toString()
-					# Rename binary based on platform
-					outputFile = path.join(projectDir,
-						@profileManager.currentTargetPlatformName.toLowerCase() +
-						'_firmware_' + (new Date()).getTime() + '.bin')
-					fs.moveSync path.join(outputDir, 'firmware.bin'), outputFile
-			, (error) =>
-				@toolBarButton.removeClass 'ion-looping'
-				compileErrorHandler error
+		promise = @dockerManager.compile projectDir, outputDir, {
+				PLATFORM_ID: @profileManager.currentTargetPlatform,
+				ACCESS_TOKEN: @profileManager.get 'access_token'
+			},
+			currentBuildTarget
+			currentPlatform
 
-	updateFirmwareVersions: -> @beingLoadedRequired => @dockerManagerRequired =>
-		notification = atom.notifications.addInfo """
-			<span>Updating available firmware versions...</span>
-			<progress class="inline-block" />""",
-			dismissable: true
-			detail: 'This may take couple of minutes, depending on your connection speed and amount of new versions (which may be up to 10GB).'
-		@dockerManager.pull().then (value) =>
-			if notification.isDismissed()
-				atom.notifications.addInfo 'Available firmware versions updated'
+		promise.then (result) =>
+			@consolePanel.raw fs.readFileSync(path.join(outputDir, 'memory-use.log')).toString()
+			# Rename binary based on platform
+			outputFile = path.join(projectDir,
+				"#{currentPlatform}_#{currentBuildTarget}_firmware_" + (new Date()).getTime() + '.bin')
+			fs.moveSync path.join(outputDir, 'firmware.bin'), outputFile
+
+			@setToolBarButtonProgress false
+		, (error) =>
+			@setToolBarButtonProgress false
+			if Array.isArray(error)
+				for line in error
+					@consolePanel.error line
+
+				@consolePanel.error 'Local compilation failed'
 			else
-				notification.dismiss()
-				@localCompilerTile?.updateDefaultVersion()
+				compileErrorHandler error
 
 	addCommand: (name, callback, target='atom-workspace') ->
 		name = @packageName + ':' + name

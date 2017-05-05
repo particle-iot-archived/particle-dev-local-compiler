@@ -1,125 +1,101 @@
 Emitter = null
-Docker = null
+DockerCompose = null
+DrayManager = null
+BuildpackJob = null
 whenjs = null
 pipeline = null
 semver = null
+path = null
+glob = null
+fs = null
 
 Function::property = (prop, desc) ->
 	Object.defineProperty @prototype, prop, desc
 
 module.exports =
 	class DockerManager
-		constructor: (@imageName, @host, @certPath, @tlsVerify=1, @machineName='default', @timeout=5) ->
+		constructor: (@timeout=5) ->
+			return if @drayManager
 			{Emitter} = require 'event-kit'
-			Docker ?= require 'dockerode'
+			{DockerCompose} = require 'docker-compose-tool'
+			{DrayManager, BuildpackJob} = require 'dray-client'
 			whenjs ?= require 'when'
 			pipeline ?= require 'when/pipeline'
-			semver ?= require 'semver'
-
-			process.env.DOCKER_TLS_VERIFY = @tlsVerify
-			process.env.DOCKER_HOST = @host
-			process.env.DOCKER_CERT_PATH = @certPath
-			process.env.DOCKER_MACHINE_NAME = @machineName
+			path ?= require 'path'
+			glob ?= require 'glob'
+			fs ?= require 'fs'
 
 			@emitter = new Emitter
 			try
-				@docker = new Docker()
+				@compose = new DockerCompose({
+					composePath: path.join(__dirname, '..', 'docker-compose.yml'),
+					forceRecreate: true
+				})
+
+				@initPromise = @compose.up()
+
+				@initPromise.then () =>
+					require('dns').lookup require('os').hostname(), (err, addr, fam) =>
+						@compose.logs 'dray', @drayLogParser
+
+						@drayManager = new DrayManager(
+							"http://#{addr}:12345",
+							"redis://#{addr}:6379",
+						)
+						@initPromise = null
+				, (reason) =>
+					@handleError reason
 			catch error
 				@handleError error
 
 		destroy: ->
 			@emitter.dispose()
 
-		getVersions: ->
-			dfd = whenjs.defer()
-			@docker.listImages (error, data) =>
-				if error
-					@handleError error
-					dfd.reject error
-				else
-					versions = []
-					for image in data
-						if image.RepoTags.length
-							if image.RepoTags[0].startsWith(@imageName + ':')
-								versions.push image.RepoTags[0].split(':')[1]
+		drayRequired: (callback) ->
+			if @initPromise
+				atom.notifications.addError 'The compile server is still starting up. Please wait a bit and try again.',
+					dismissable: true
+				return
+			callback()
 
-					dfd.resolve versions
-			dfd.promise
+		drayLogParser: (log) ->
+			regex = /msg="(.*)"/
+			parsed = regex.exec log
+			message = if parsed then parsed[1] else log
 
-		getSemVerVersions: ->
-			pipeline [
-				=>
-					@getVersions()
-				(versions) =>
-					validVersions = versions.filter semver.valid
-					validVersions = validVersions.sort semver.compare
-					validVersions.reverse()
-			]
+			if message.startsWith 'Pulling'
+				atom.notifications.addInfo "#{message}...\n\nIt make take a bit longer the first time..."
 
-		getLatestSemVerVersion: ->
-			pipeline [
-				=>
-					@getSemVerVersions()
-				(versions) =>
-					versions[0]
-			]
+			if message.startsWith 'API error'
+				regex = /API error \((\d+)\)\: (.*)/
+				parsed = regex.exec message
+				json = JSON.parse parsed[2].replace(/\\"/g, '"').replace('\\n', '')
+				atom.notifications.addError "Docker error #{parsed[1]}",
+					detail: json.message
+					dismissable: true
 
-		pull: ->
-			dfd = whenjs.defer()
-			@docker.pull @imageName, (error, stream) =>
-				if error
-					@handleError error
-					dfd.reject error
-				else
-					stream.on 'data', (data) ->
-						console.debug '-->', data.toString()
-					stream.on 'end', ->
-						console.debug 'Pulling done'
-						dfd.resolve()
+		compile: (projectDir, outputDir, env, version, platform) -> @drayRequired =>
+			# TODO: Catch missing image
+			job = new BuildpackJob(@drayManager)
 
-			dfd.promise
+			files = glob.sync projectDir + '/**/*.{c,cpp,h,hpp,ino,properties}'
+			files = files.map (file) ->
+				{
+					name: file.replace("#{projectDir}/", ''),
+					data: fs.readFileSync(file)
+				}
 
-		run: (inputDir, outputDir, cacheDir, env=[], version='latest') ->
-			dfd = whenjs.defer()
-			killed = false
-			env = (key + '=' + variable for key, variable of env)
-			createOptions =
-				Env: env
-
-			startOptions =
-				HostConfig:
-					Binds: [
-						inputDir + ':/input',
-						outputDir + ':/output',
-						cacheDir + ':/cache'
-					]
-				Volumes:
-					'/input': {},
-					'/output': {},
-					'/cache': {}
-
-			hub = @docker.run @imageName + ':' + version, [], null, createOptions, startOptions, (error, data, container) =>
-				if error
-					@handleError error
-					dfd.reject error
-				else
-					clearTimeout @timer
-					if killed
-						return
-					dfd.resolve data, container
-
-			hub.on 'container', (container) =>
-				# Stop long running containers
-				@timer = setTimeout =>
-					killed = true
-					container.kill (error, data) =>
-						if !error
-							error = 'Compilation timed out'
-						dfd.reject error
-						@handleError error
-				, @timeout * 1000
-
-			dfd.promise
+			job.addFiles(files)
+			job.setEnvironment(env)
+			job.setBuildpacks([
+				'particle/buildpack-wiring-preprocessor',
+				'particle/buildpack-install-dependencies',
+				"particle/buildpack-particle-firmware:#{version}-#{platform}"
+			])
+			job.submit().then (binaries) =>
+				for k, v of binaries
+					fs.writeFileSync path.join(outputDir, k), v
+				job.getLogs()
 
 		onError: (callback) ->
 			@emitter.on 'error', callback
