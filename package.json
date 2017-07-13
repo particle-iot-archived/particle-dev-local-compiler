@@ -1,7 +1,7 @@
 {
   "name": "particle-dev-local-compiler",
   "main": "./lib/main",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Package providing local compilation for Particle devices in Particle Dev",
   "keywords": [
     "spark",
