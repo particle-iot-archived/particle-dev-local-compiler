@@ -56,7 +56,7 @@
     },
     "particle-dev-profiles": {
       "versions": {
-        "^0.0.1": "consumeProfiles"
+        "^0.0.2": "consumeProfiles"
       }
     }
   }

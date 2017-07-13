@@ -1,3 +1,6 @@
+## 0.1.1
+* Use particle-dev-profiles API 0.0.2
+
 ## 0.1.0
 * Use latest iteration of buildpacks
 * Use target platform/firmware version selection from cloud compile
