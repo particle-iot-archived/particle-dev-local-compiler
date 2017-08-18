@@ -96,6 +96,10 @@ module.exports = ParticleDevLocalCompiler =
 		@core
 
 	setupDocker: ->
+		# Fix for "Unable to connect to Docker" error
+		childProcess = require 'child_process'
+		process.env.PATH = childProcess.execFileSync(process.env.SHELL, ['-i', '-c', 'echo $PATH']).toString().trim()
+
 		@dockerManager = null
 
 		@dockerManager = new DockerManager()
@@ -105,8 +109,11 @@ module.exports = ParticleDevLocalCompiler =
 				atom.notifications.addError error,
 					dismissable: true
 			else
+				console.error error
 				error = """Unable to connect to Docker.\n
-				Check if Docker is running (you can use `docker ps -a` in command line).
+				Check if Docker is running (you can use `docker ps -a` in command line).\n
+				Reason:
+				```#{error}```
 				"""
 				notification = atom.notifications.addError error,
 					dismissable: true
@@ -163,7 +170,7 @@ module.exports = ParticleDevLocalCompiler =
 
 				@consolePanel.error 'Local compilation failed'
 			else
-				compileErrorHandler error
+				atom.notifications.addError error
 
 	addCommand: (name, callback, target='atom-workspace') ->
 		name = @packageName + ':' + name

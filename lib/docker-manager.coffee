@@ -53,9 +53,7 @@ module.exports =
 
 		drayRequired: (callback) ->
 			if @initPromise
-				atom.notifications.addError 'The compile server is still starting up. Please wait a bit and try again.',
-					dismissable: true
-				return
+				return Promise.reject('The compile server is still starting up. Please wait a bit and try again.')
 			callback()
 
 		drayLogParser: (log) ->
