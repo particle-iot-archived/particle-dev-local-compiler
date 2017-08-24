@@ -1,3 +1,6 @@
+## 0.1.3
+* Fix [spawnSync undefined ENOENT](https://github.com/spark/particle-dev-local-compiler/issues/33)
+
 ## 0.1.2
 * Fix [Unable to connect to Docker](https://github.com/spark/particle-dev-local-compiler/issues/32)
 

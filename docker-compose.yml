@@ -1,5 +1,5 @@
 dray:
-  image: particle/dray:0.14.2
+  image: particle/dray:0.14.4
   links:
    - redis
   volumes:

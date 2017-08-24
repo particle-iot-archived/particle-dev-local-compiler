@@ -25,6 +25,7 @@
     "glob": "^7.1.2",
     "particle-dev-views": "git://github.com/spark/particle-dev-views.git#v0.0.3",
     "semver": "^5.4.1",
+    "strip-ansi": "^4.0.0",
     "when": "^3.7.8"
   },
   "package-deps": [
