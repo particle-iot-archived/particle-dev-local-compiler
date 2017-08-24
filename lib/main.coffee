@@ -79,6 +79,16 @@ module.exports = ParticleDevLocalCompiler =
 			default: '~/.particledev/cache'
 			description: 'Directory holding intermediate files between builds.'
 
+		defaultTimeout:
+			type: 'number'
+			default: 20
+			description: 'Default compile timeout'
+
+		logDray:
+			type: 'boolean'
+			default: false
+			description: 'Log debug information from Dray'
+
 	dockerManagerRequired: (callback) ->
 		if !@dockerManager
 			@setupDocker()
@@ -102,7 +112,10 @@ module.exports = ParticleDevLocalCompiler =
 
 		@dockerManager = null
 
-		@dockerManager = new DockerManager()
+		@dockerManager = new DockerManager(
+			atom.config.get(@packageName + '.defaultTimeout'),
+			atom.config.get(@packageName + '.logDray')
+		)
 		@dockerManager.onError (error) =>
 			if (typeof error != 'string') and (error.errno not in ['ETIMEDOUT', 'ECONNREFUSED'])
 				error = error.toString()
@@ -155,7 +168,10 @@ module.exports = ParticleDevLocalCompiler =
 			currentPlatform
 
 		promise.then (result) =>
-			@consolePanel.raw fs.readFileSync(path.join(outputDir, 'memory-use.log')).toString()
+			memoryUseFile = path.join(outputDir, 'memory-use.log')
+			if fs.existsSync memoryUseFile
+				@consolePanel.raw fs.readFileSync(memoryUseFile).toString()
+
 			# Rename binary based on platform
 			outputFile = path.join(projectDir,
 				"#{currentPlatform}_#{currentBuildTarget}_firmware_" + (new Date()).getTime() + '.bin')

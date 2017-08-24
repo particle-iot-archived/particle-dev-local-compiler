@@ -8,13 +8,14 @@ semver = null
 path = null
 glob = null
 fs = null
+stripAnsi = null
 
 Function::property = (prop, desc) ->
 	Object.defineProperty @prototype, prop, desc
 
 module.exports =
 	class DockerManager
-		constructor: (@timeout=5) ->
+		constructor: (@timeout=5, @logDray=false) ->
 			return if @drayManager
 			{Emitter} = require 'event-kit'
 			{DockerCompose} = require 'docker-compose-tool'
@@ -45,6 +46,11 @@ module.exports =
 						@initPromise = null
 				, (reason) =>
 					@handleError reason
+
+				if @logDray
+					stripAnsi ?= require 'strip-ansi'
+					@compose.logs 'dray', (line) =>
+						console.info stripAnsi(line)
 			catch error
 				@handleError error
 
