@@ -2,6 +2,7 @@ whenjs = require 'when'
 fs = null
 glob = null
 path = null
+os = null
 CompositeDisposable = null
 
 DockerManager = null
@@ -106,9 +107,11 @@ module.exports = ParticleDevLocalCompiler =
 		@core
 
 	setupDocker: ->
+		os ?= require 'os'
 		# Fix for "Unable to connect to Docker" error
-		childProcess = require 'child_process'
-		process.env.PATH = childProcess.execFileSync(process.env.SHELL, ['-i', '-c', 'echo $PATH']).toString().trim()
+		if os.type() == "Darwin"
+			childProcess = require 'child_process'
+			process.env.PATH = childProcess.execFileSync(process.env.SHELL, ['-i', '-c', 'echo $PATH']).toString().trim()
 
 		@dockerManager = null
 
