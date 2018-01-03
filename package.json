@@ -9,7 +9,7 @@
     "compiler",
     "photon"
   ],
-  "repository": "https://github.com/spark/particle-dev-local-compiler",
+  "repository": "https://github.com/particle-iot/particle-dev-local-compiler",
   "license": "MIT",
   "engines": {
     "atom": ">=1.0.0 <2.0.0"
@@ -23,7 +23,7 @@
     "event-kit": "^2.3.0",
     "fs-plus": "^3.0.1",
     "glob": "^7.1.2",
-    "particle-dev-views": "git://github.com/spark/particle-dev-views.git#v0.0.3",
+    "particle-dev-views": "git://github.com/particle-iot/particle-dev-views.git#v0.0.3",
     "semver": "^5.4.1",
     "strip-ansi": "^4.0.0",
     "when": "^3.7.8"
